@@ -1,11 +1,11 @@
 __author__ = 'alavrenko'
 
-from icalendar import Calendar, Event
+from icalendar import Calendar, Event, Alarm, Todo
 import re
 
-title = 'Погружение в СУБД'
-course_id = '157'
-course = open('/Users/alavrenko/Work/from_windows/PycharmProjects/educate/titles_157.xml', 'r')
+# title = 'Погружение в СУБД'
+# course_id = '157'
+# course = open('/Users/alavrenko/Work/from_windows/PycharmProjects/educate/titles_157.xml', 'r')
 
 # title = 'Основы теории графов'
 # course_id = '126'
@@ -23,9 +23,9 @@ course = open('/Users/alavrenko/Work/from_windows/PycharmProjects/educate/titles
 # course_id = '131'
 # course = open('/Users/alavrenko/Work/from_windows/PycharmProjects/educate/titles_131.xml', 'r')
 
-# title = 'Алгоритмы: теория и практика'
-# course_id = '218'
-# course = open('/Users/alavrenko/Work/from_windows/PycharmProjects/educate/titles_218.xml', 'r')
+title = 'Алгоритмы: теория и практика'
+course_id = '218'
+course = open('/Users/alavrenko/Work/from_windows/PycharmProjects/educate/titles_218.xml', 'r')
 
 tag = re.compile(r'<[^>]+>')
 weeks = {tag.sub('', line).strip()[3:]: tag.sub('', line).strip()[:1] for line in course if 'toggle__title__btn' in line}
@@ -59,29 +59,46 @@ for component in gcal.walk():
 print("Find", len(test), "modules")
 for module in test:
     event = Event()
+    # todo = Todo()
+    event.add('transp', 'transparent')
     event.add('summary', module)
     print("Adding event", module)
     events = test[module]
     print("Load", len(events), "events")
     if len(events) == 1:
+        # event = Event()
+        # event.add('transp', 'transparent')
+        # event.add('summary', module)
         print("Add single event")
         event.add('dtstart', events[0].get('dtstart'))
         event.add('dtend', events[0].get('dtend'))
         event.add('url', course_url + weeks[module])
+        # courseCalendar.add_component(event)
     else:
+        # todo.add('summary', module)
         for e in events:
+            alarm = Alarm()
             splited_summary = e.get('summary').split('"')
+            alarm.add("action", "DISPLAY")
+            alarm.add('description', "Deadline is coming!")
+            alarm.add("TRIGGER;RELATED=END", "-PT2D")
+            event.add_component(alarm)
+            # todo.add_component(alarm)
             if 'Module starts' in splited_summary[0]:
                 print("Add starting event")
                 event.add('dtstart', e.get('dtstart'))
+                # todo.add('dtstart', e.get('dtstart'))
                 event.add('url', course_url + weeks[module])
+                # todo.add('url', course_url + weeks[module])
             elif 'Soft deadline for module' in splited_summary[0]:
                 print("Add finishing event, hard deadline will be skiped")
                 event.add('dtend', e.get('dtend'))
+                # todo.add('due', e.get('dtend'))
             elif 'Hard deadline for module' in splited_summary[0] and not skipHardDeadlines:
                 print("Add finishing event")
                 event.add('dtend', e.get('dtend'))
-
+                # todo.add('due', e.get('dtend'))
+            # courseCalendar.add_component(todo)
     courseCalendar.add_component(event)
 
 f = open('/Users/alavrenko/Work/from_windows/PycharmProjects/educate/course_' + course_id + '.ics', 'wb')
