@@ -23,7 +23,7 @@ answer = 0
 
 while False in used:
     not_used_vertex = used.index(False)
-    answer += 1
+    answer += 1 + 1
     dfs(g, not_used_vertex)
 
 print(answer)
